@@ -38,7 +38,7 @@ typedef enum { ISRAELIQUEUE_SUCCESS, ISRAELIQUEUE_ALLOC_FAILED, ISRAELIQUEUE_BAD
  * comparison function, friendship threshold and rivalry threshold. Returns a pointer
  * to the new object. In case of failure, return NULL.*/
 IsraeliQueue IsraeliQueueCreate(FriendshipFunction * friendshipFunctions, ComparisonFunction comparisonFunction,
-									int friendship_th, int rivalry_th);
+									int friendship_th, int rivalry_th); 
 
 /**Returns a new queue with the same elements as the parameter. If the parameter is NULL or any error occured during
  * the execution of the function, NULL is returned.*/
@@ -54,7 +54,7 @@ void IsraeliQueueDestroy(IsraeliQueue queue);
  * @param item: an item to enqueue
  *
  * Places the item in the foremost position accessible to it.*/
-IsraeliQueueError IsraeliQueueEnqueue(IsraeliQueue queue, void* item);
+IsraeliQueueError IsraeliQueueEnqueue(IsraeliQueue queue, void* item); 
 
 /**@param IsraeliQueue: an IsraeliQueue to which the function is to be added
  * @param FriendshipFunction: a FriendshipFunction to be recognized by the IsraeliQueue

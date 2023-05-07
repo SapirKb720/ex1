@@ -140,3 +140,19 @@ IsraeliQueueError IsraeliQueueAddFriendshipMeasure(IsraeliQueue queue, Friendshi
 
 	return ISRAELIQUEUE_SUCCESS;
 }
+
+IsraeliQueueError IsraeliQueueUpdateFriendshipThreshold(IsraeliQueue queue, int friendship_th)
+{
+	if (queue == NULL)
+		return ISRAELI_QUEUE_ERROR;
+	queue->friendship_th = friendship_th;
+	return ISRAELIQUEUE_SUCCESS;
+}
+
+int IsraeliQueueSize(IsraeliQueue queue)
+{
+	return FindQueueLength(queue);
+}
+
+
+
