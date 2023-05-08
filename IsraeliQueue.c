@@ -35,9 +35,10 @@ void IsraeliQueueDestroy(IsraeliQueue queue) {
 
 int FindQueueLength(Node head)
 {
+	IsraeliQueue q = head;
 	int len = 0;
-	while (head) {
-		heah = head->next;
+	while (q) {
+		q = q->next;
 		len++;
 	}
 	return len;
@@ -144,7 +145,7 @@ IsraeliQueueError IsraeliQueueAddFriendshipMeasure(IsraeliQueue queue, Friendshi
 IsraeliQueueError IsraeliQueueUpdateFriendshipThreshold(IsraeliQueue queue, int friendship_th)
 {
 	if (queue == NULL)
-		return ISRAELI_QUEUE_ERROR;
+		return ISRAELIQUEUE_BAD_PARAM;
 	queue->friendship_th = friendship_th;
 	return ISRAELIQUEUE_SUCCESS;
 }
@@ -154,5 +155,61 @@ int IsraeliQueueSize(IsraeliQueue queue)
 	return FindQueueLength(queue);
 }
 
+
+bool IsraeliQueueContains(IsraeliQueue queue, void* item)
+{
+	IsraeliQueue q = queue;
+	bool isInQ = false;
+
+	while (q) {
+		q = q->next;
+		
+	}
+	return isInQ;
+}
+
+IsraeliQueueError IsraeliQueueImprovePositions(IsraeliQueue queue)
+{
+
+
+}
+
+IsraeliQueue IsraeliQueueMerge(IsraeliQueue* queue, ComparisonFunction comparisonFunction)
+{
+	IsraeliQueue* q1 = queue;
+	int numOfQueues = 0;
+	int newQueueLen = 0;
+	while (*(q1) != null)
+	{
+		numOfQueues++;
+		q1++;
+	}
+
+	for (int i = 0; i < numOfQueues; i++)
+	{
+		newQueueLen += IsraeliQueueSize(*(queue + i));
+	}
+
+	IsraeliQueue* q2 = queue;
+
+	int friendshipSum = 0;
+	int rivaltyMultiple = 1;
+	for (int i = 0; i < numOfQueues; i++)
+	{
+		friendshipSum += (*(queue + i))->friendship_th;
+		rivaltyMultiple *= (*(queue + i))->rivalry_th;
+	}
+
+	int friendshipAvg = friendshipSum / numOfQueues;
+	int rivaltyAvg = 
+
+	IsraeliQueueCreate(FriendshipFunction * friendshipFunctions, ComparisonFunction comparisonFunction, int friendship_th, int rivalry_th)
+	for (int i = 0; i < newQueueLen; i++)
+	{
+		IsraeliQueueEnqueue(IsraeliQueue queue, void* item)
+	}
+
+
+}
 
 
