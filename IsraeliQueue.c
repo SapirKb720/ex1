@@ -1,4 +1,22 @@
 #include "IsraeliQueue.h"
+#include <math.h>
+
+#define FRIEND 1
+#define RIVAL -1
+
+typedef struct node {
+	Node next;
+}*Node;
+
+typedef struct IsraeliQueue_t {
+	Node head;
+	FriendshipFunction* friendshipFunctions;
+	ComparisonFunction comparisonFunction;
+	int friendship_th;
+	int rivalry_th;
+}*IsraeliQueue;
+
+
 
 IsraeliQueue IsraeliQueueCreate(FriendshipFunction* friendshipFunctions, ComparisonFunction comparisonFunction,
 	int friendship_th, int rivalry_th)
@@ -30,9 +48,13 @@ void IsraeliQueueDestroy(IsraeliQueue queue) {
 		free(toDelete);
 	}
 	free(queue->friendshipFunctions)
-	free(queue);
+		free(queue);
 }
 
+
+/*
+function finds length of given queue and returns it
+*/
 int FindQueueLength(Node head)
 {
 	IsraeliQueue q = head;
@@ -44,9 +66,14 @@ int FindQueueLength(Node head)
 	return len;
 }
 
+/*
+function checks the relathionship betweeeb two given nodes
+recieves the two nodes, the friendship functions and friendship and rivalry thresholds
+returns -1 if rivals, 1 if friends or a neutral 0
+*/
 int CheckRelationship(Node n1, Node n2, FriendshipFunction* friendshipFunctions, int friendship_th, int rivalry_th)
 {
-	int sumFunctions = 0, numFunctions = 0, currResult=0;
+	int sumFunctions = 0, numFunctions = 0, currResult = 0;
 	while (friendshipFunctions)
 	{
 		numFunctions++;
@@ -76,47 +103,51 @@ IsraeliQueueError IsraeliQueueEnqueue(IsraeliQueue queue, void* item)
 	int* friendRivalArray = malloc(sizeof(int) * len);
 	Node curr = queue->head;
 
-	if (!friendRivalArray){
+	if (!friendRivalArray) {
 		return ISRAELIQUEUE_ALLOC_FAILED;
 	}
 
-	while (curr){
+	while (curr) {
 		friendRivalArray[j] = CheckRelationship(item, curr, queue->friendship_th, queue->rivalry_th);
 		j++;
 		curr = curr->next;
 	}
 
-	for (int i = 0; i < len; i++){
-		if (friendIndex == len && friendRivalArray[i] == FRIEND){
+	for (int i = 0; i < len; i++) {
+		if (friendIndex == len && friendRivalArray[i] == FRIEND) {
 			friendIndex = i;
 		}
-		else if (friendRivalArray[i] == RIVAL){
+		else if (friendRivalArray[i] == RIVAL) {
 			friendIndex = len;
 		}
 	}
 	j = 0;
 	curr = queue->head;
-	while (curr && j < friendIndex){
+	while (curr && j < friendIndex) {
 		curr = curr->next;
 	}
-	
+
 	item->next = curr->next;
 	curr->next = item;
 
 	return ISRAELIQUEUE_SUCCESS;
 }
 
-int countFunctions(FriendshipFunction* functions) {
-	int i = 0;
-	if (!funtions)
+/*
+function: counts num of functions in given friendship function array
+input: an array of friendship function
+output: length of given array
+*/
+int countFrienshipArrLen(FriendshipFunction* friendshipfunctions)
+{
+	int count = 0;
+	FriendshipFunction* f = friendshipfunctions;
+	while (*f != NULL)
 	{
-		return 0;
+		count++;
+		f++;
 	}
-	while (functions[i])
-	{
-		i++;
-	}
-	return i;
+	return count;
 }
 
 IsraeliQueueError IsraeliQueueAddFriendshipMeasure(IsraeliQueue queue, FriendshipFunction function)
@@ -124,7 +155,7 @@ IsraeliQueueError IsraeliQueueAddFriendshipMeasure(IsraeliQueue queue, Friendshi
 	if (!function || !queue) {
 		return ISRAELIQUEUE_BAD_PARAM;
 	}
-	int len = countFunctions(queue->friendshipFunctions);
+	int len = countFrienshipArrLen(queue->friendshipFunctions);
 	FriendshipFunction* newFunctions = malloc(sizeof(FriendshipFunction) * (len + 1));
 	if (!newFunctions)
 	{
@@ -163,7 +194,7 @@ bool IsraeliQueueContains(IsraeliQueue queue, void* item)
 
 	while (q) {
 		q = q->next;
-		
+
 	}
 	return isInQ;
 }
@@ -192,23 +223,6 @@ int countQueuesArray(IsraeliQueue* queue)
 }
 
 /*
-function: counts num of functions in given friendship function array
-input: an array of friendship function
-output: length of given array
-*/
-int countFrienshipArrLen(FriendshipFunction* friendshipfunctions)
-{
-	int count = 0;
-	FriendshipFunction* f = friendshipfunctions;
-	while (*f != NULL)
-	{
-		count++;
-		f++;
-	}
-	return count;
-}
-
-/*
 function: counts total amount of friendship functions in all queues in given queue array
 input:  an array of israeli queues
 output: total amount of friendship functions in all queues in given queue array
@@ -228,7 +242,7 @@ int countFriendshipFunctions(IsraeliQueue* queue)
 /*
 function: merges all friendship functions of queues in given queue array into one big friendshipFunctions array
 input: an array of queues and the array of friendshipfunctions to merge into
-output: none 
+output: none
 */
 void mergeFriendshipFunctions(IsraeliQueue* queue, FriendshipFunction* friendshipFunctions)
 {
@@ -250,7 +264,7 @@ void mergeFriendshipFunctions(IsraeliQueue* queue, FriendshipFunction* friendshi
 }
 
 /*
-function: mergers all queues in given israeliqueue array into one queue 
+function: mergers all queues in given israeliqueue array into one queue
 iput: an array of queues, new queue to merge into
 output: none
 */
@@ -260,10 +274,10 @@ void mergeQueues(IsraeliQueue* queue, IsraeliQueue newQueue)
 	Node* nodes = malloc(sizeof(Node) * numOfQueues);
 	bool isAllNull = false;
 
-	while (!isAllNull){
+	while (!isAllNull) {
 		isAllNull = true;
-		for (int i = 0; i < numOfQueues; i++){
-			if ((*(nodes + i)) != NULL){
+		for (int i = 0; i < numOfQueues; i++) {
+			if ((*(nodes + i)) != NULL) {
 				isAllNull = false;
 				IsraeliQueueEnqueue(queue, *(nodes + i));
 				*(nodes + i) = (*(nodes + i))->next;
@@ -283,7 +297,7 @@ IsraeliQueue IsraeliQueueMerge(IsraeliQueue* queue, ComparisonFunction compariso
 	}
 	mergeFriendshipFunctions(queue, newFriendshipFunctions);
 
-	for (int i = 0; i < numOfQueues; i++){
+	for (int i = 0; i < numOfQueues; i++) {
 		friendshipSum += (*(queue + i))->friendship_th;
 		rivaltyMultiple *= abs((*(queue + i))->rivalry_th);
 	}
