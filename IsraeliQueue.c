@@ -135,7 +135,7 @@ IsraeliQueueError IsraeliQueueAddFriendshipMeasure(IsraeliQueue queue, Friendshi
 		newFunctions[i] = queue->friendshipFunctions[i];
 	}
 	newFunctions[len] = function;
-	newFunctions[len + 1]  NULL;
+	newFunctions[len + 1] = NULL;
 	free(queue->friendshipFunctions); //freeing current array
 	queue->friendshipFunctions = newFunctions;
 
@@ -174,41 +174,127 @@ IsraeliQueueError IsraeliQueueImprovePositions(IsraeliQueue queue)
 
 }
 
+/*
+function: counts num of queues in given queue array
+input: an array of queues
+output: length of given array
+*/
+int countQueuesArray(IsraeliQueue* queue)
+{
+	int count = 0;
+	IsraeliQueue* q = queue;
+	while (*q != NULL)
+	{
+		count++;
+		q++;
+	}
+	return count;
+}
+
+/*
+function: counts num of functions in given friendship function array
+input: an array of friendship function
+output: length of given array
+*/
+int countFrienshipArrLen(FriendshipFunction* friendshipfunctions)
+{
+	int count = 0;
+	FriendshipFunction* f = friendshipfunctions;
+	while (*f != NULL)
+	{
+		count++;
+		f++;
+	}
+	return count;
+}
+
+/*
+function: counts total amount of friendship functions in all queues in given queue array
+input:  an array of israeli queues
+output: total amount of friendship functions in all queues in given queue array
+*/
+int countFriendshipFunctions(IsraeliQueue* queue)
+{
+	int count = 0;
+	IsraeliQueue* q = queue;
+	while (*q != NULL)
+	{
+		count += countFrienshipArrLen((*q));
+		q++;
+	}
+	return count;
+}
+
+/*
+function: merges all friendship functions of queues in given queue array into one big friendshipFunctions array
+input: an array of queues and the array of friendshipfunctions to merge into
+output: none 
+*/
+void mergeFriendshipFunctions(IsraeliQueue* queue, FriendshipFunction* friendshipFunctions)
+{
+	int i = 0;
+	IsraeliQueue* currQueue = queue;
+	FriendshipFunction* currFunc = friendshipFunctions;
+	while (*currQueue != NULL)
+	{
+		currFunc = (*currQueue)->friendshipFunctions;
+		while (*currFunc != NULL)
+		{
+			*(friendshipFunctions + i) = *currFunc;
+			i++;
+			currFunc++;
+		}
+		currQueue++;
+	}
+	*(friendshipFunctions + i) = NULL; //putting null at the end
+}
+
+/*
+function: mergers all queues in given israeliqueue array into one queue 
+iput: an array of queues, new queue to merge into
+output: none
+*/
+void mergeQueues(IsraeliQueue* queue, IsraeliQueue newQueue)
+{
+	int numOfQueues = countQueuesArray(queue);
+	Node* nodes = malloc(sizeof(Node) * numOfQueues);
+	bool isAllNull = false;
+
+	while (!isAllNull){
+		isAllNull = true;
+		for (int i = 0; i < numOfQueues; i++){
+			if ((*(nodes + i)) != NULL){
+				isAllNull = false;
+				IsraeliQueueEnqueue(queue, *(nodes + i));
+				*(nodes + i) = (*(nodes + i))->next;
+			}
+		}
+	}
+}
+
 IsraeliQueue IsraeliQueueMerge(IsraeliQueue* queue, ComparisonFunction comparisonFunction)
 {
-	IsraeliQueue* q1 = queue;
-	int numOfQueues = 0;
-	int newQueueLen = 0;
-	while (*(q1) != null)
-	{
-		numOfQueues++;
-		q1++;
+	int numOfQueues = countQueuesArray(queue);
+	int friendshipSum = 0, rivaltyMultiple = 1;
+	int friendshipArrayTotal = countFriendshipFunctions(queue);
+	FriendshipFunction* newFriendshipFunctions = malloc(sizeof(FriendshipFunction) * (friendshipArrayTotal + 1));
+	if (newFriendshipFunctions == NULL) { //ERROR!!
+		return NULL;
 	}
+	mergeFriendshipFunctions(queue, newFriendshipFunctions);
 
-	for (int i = 0; i < numOfQueues; i++)
-	{
-		newQueueLen += IsraeliQueueSize(*(queue + i));
-	}
-
-	IsraeliQueue* q2 = queue;
-
-	int friendshipSum = 0;
-	int rivaltyMultiple = 1;
-	for (int i = 0; i < numOfQueues; i++)
-	{
+	for (int i = 0; i < numOfQueues; i++){
 		friendshipSum += (*(queue + i))->friendship_th;
-		rivaltyMultiple *= (*(queue + i))->rivalry_th;
+		rivaltyMultiple *= abs((*(queue + i))->rivalry_th);
 	}
 
 	int friendshipAvg = friendshipSum / numOfQueues;
-	int rivaltyAvg = 
+	//geometrical average calculating (powering by 1/num, then rounding up to an int:  )
+	int rivaltyAvg = (int)(ceil(pow((double)(rivaltyMultiple), 1 / (double)(numOfQueues)));
 
-	IsraeliQueueCreate(FriendshipFunction * friendshipFunctions, ComparisonFunction comparisonFunction, int friendship_th, int rivalry_th)
-	for (int i = 0; i < newQueueLen; i++)
-	{
-		IsraeliQueueEnqueue(IsraeliQueue queue, void* item)
-	}
-
+	IsraeliQueue newQueue = IsraeliQueueCreate(newFriendshipFunctions, ComparisonFunction comparisonFunction, friendshipAvg, rivaltyAvg);
+	mergeQueues(queue, newQueue);
+	return newQueue;
 
 }
 
