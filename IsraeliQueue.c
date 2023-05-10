@@ -6,6 +6,11 @@
 
 typedef struct node {
 	Node next;
+	void* student;
+	int friends; //amount of friends he let them pass
+	int rivals; //amount of rivals he prevented them to pass him in line
+	bool improved; //required for the improve function
+
 }*Node;
 
 typedef struct IsraeliQueue_t {
@@ -16,12 +21,10 @@ typedef struct IsraeliQueue_t {
 	int rivalry_th;
 }*IsraeliQueue;
 
-
-
 IsraeliQueue IsraeliQueueCreate(FriendshipFunction* friendshipFunctions, ComparisonFunction comparisonFunction,
 	int friendship_th, int rivalry_th)
 {
-	IsraeliQueue q = malloc(sizeof(*IsraliQueue));
+	IsraeliQueue q = malloc(sizeof(struct IsraeliQueue_t));
 	q->head = NULL;
 	q->friendshipFunctions = friendshipFunctions;
 	q->comparisonFunction = comparisonFunction;
@@ -47,8 +50,8 @@ void IsraeliQueueDestroy(IsraeliQueue queue) {
 		queue->head = queue->head->next;
 		free(toDelete);
 	}
-	free(queue->friendshipFunctions)
-		free(queue);
+	free(queue->friendshipFunctions);
+	free(queue);
 }
 
 
@@ -57,7 +60,7 @@ function finds length of given queue and returns it
 */
 int FindQueueLength(Node head)
 {
-	IsraeliQueue q = head;
+	Node q = head;
 	int len = 0;
 	while (q) {
 		q = q->next;
@@ -73,21 +76,30 @@ returns -1 if rivals, 1 if friends or a neutral 0
 */
 int CheckRelationship(Node n1, Node n2, FriendshipFunction* friendshipFunctions, int friendship_th, int rivalry_th)
 {
-	int sumFunctions = 0, numFunctions = 0, currResult = 0;
-	while (friendshipFunctions)
+	int sumFunctions = 0, numFunctions = 0, currResult = 0, index=0;
+	if (n2->friends < FRIEND_QUOTA)
 	{
-		numFunctions++;
-		currResult = (*friendshipFunctions)(n1, n2); //does it work like that???????????????????????????????????????
-		if (currResult > friendship_th)
+		while (friendshipFunctions[index])
 		{
-			return FRIEND;
+			numFunctions++;
+			currResult = (*friendshipFunctions)(n1->student, n2->student); 
+			if (currResult > friendship_th)
+			{
+				n2->friends++;
+				return FRIEND;
+			}
+			sumFunctions += currResult;
+			index++;
 		}
-		sumFunctions += currResult;
 	}
 
-	if ((sumFunctions / numFunctions) < rivalry_th)
+	if (n2->friends < RIVAL_QUOTA)
 	{
-		return RIVAL;
+		if ((sumFunctions / numFunctions) < rivalry_th)
+		{
+			n2->rivals++;
+			return RIVAL;
+		}
 	}
 
 	return 0;
@@ -102,13 +114,22 @@ IsraeliQueueError IsraeliQueueEnqueue(IsraeliQueue queue, void* item)
 	int j = 0, friendIndex = len;
 	int* friendRivalArray = malloc(sizeof(int) * len);
 	Node curr = queue->head;
+	Node newNode = NULL;
+	if (newNode = malloc(sizeof(Node)) == NULL) {
+		return ISRAELIQUEUE_ALLOC_FAILED;
+	}
+	newNode->friends = 0;
+	newNode->rivals = 0;
+	newNode->improved = false;
+	newNode->student = item;
 
 	if (!friendRivalArray) {
 		return ISRAELIQUEUE_ALLOC_FAILED;
+		free(newNode);
 	}
 
 	while (curr) {
-		friendRivalArray[j] = CheckRelationship(item, curr, queue->friendship_th, queue->rivalry_th);
+		friendRivalArray[j] = CheckRelationship(newNode, curr, queue->friendship_th, queue->rivalry_th);
 		j++;
 		curr = curr->next;
 	}
@@ -127,8 +148,8 @@ IsraeliQueueError IsraeliQueueEnqueue(IsraeliQueue queue, void* item)
 		curr = curr->next;
 	}
 
-	item->next = curr->next;
-	curr->next = item;
+	newNode->next = curr->next;
+	curr->next = newNode;
 
 	return ISRAELIQUEUE_SUCCESS;
 }
@@ -189,19 +210,82 @@ int IsraeliQueueSize(IsraeliQueue queue)
 
 bool IsraeliQueueContains(IsraeliQueue queue, void* item)
 {
-	IsraeliQueue q = queue;
-	bool isInQ = false;
+	Node q = queue;
 
 	while (q) {
 		q = q->next;
-
+		if (q->student == item) {
+			return true;
+		}
 	}
-	return isInQ;
+	return false;
+}
+
+int countImproved(IsraeliQueue queue)
+{
+	if (queue == NULL || queue->head == NULL)
+		return 0;
+	int counter = 0;
+	int len = IsraeliQueueSize(queue);
+	Node curr = queue->head;
+
+	for (int i = 0; i < len; i++)
+	{
+		if (curr->improved)
+			counter++;
+		curr = curr->next;
+	}
+	return counter;
+}
+
+void* notImproved(IsraeliQueue queue)
+{
+	if (queue == NULL)
+		return NULL;
+	Node curr = queue->head;
+	if (curr == NULL)
+		return NULL;
+	while (curr->next != NULL && !queue->head->improved)
+	{
+		curr = curr->next;
+	}
 }
 
 IsraeliQueueError IsraeliQueueImprovePositions(IsraeliQueue queue)
 {
+	
+	if (queue == NULL)
+		return ISRAELIQUEUE_BAD_PARAM;
 
+	int len = IsraeliQueueSize(queue);
+	int notImprovedYet = 0, currNotImproved = 0;
+	Node curr = queue->head;
+	Node temp = NULL;
+	while (countImproved(queue) != len)
+	{
+		curr = queue->head;
+		currNotImproved = 0;
+		notImprovedYet = len - countImproved(queue);
+		if (notImprovedYet == 1 && !curr->improved)
+		{
+			queue->head = queue->head->next;
+			IsraeliQueueEnqueue(queue, curr->student);
+			free(curr);
+		}
+		while (!curr->next->improved && currNotImproved < notImprovedYet)
+		{
+			if (!curr->next->improved) {
+				currNotImproved++;
+			}
+			curr = curr->next;
+		}
+		temp = curr->next;
+		curr->next = curr->next->next;
+		IsraeliQueueEnqueue(queue, temp->student);
+		free(temp);
+	}
+
+	return ISRAELIQUEUE_SUCCESS;
 
 }
 
@@ -304,12 +388,11 @@ IsraeliQueue IsraeliQueueMerge(IsraeliQueue* queue, ComparisonFunction compariso
 
 	int friendshipAvg = friendshipSum / numOfQueues;
 	//geometrical average calculating (powering by 1/num, then rounding up to an int:  )
-	int rivaltyAvg = (int)(ceil(pow((double)(rivaltyMultiple), 1 / (double)(numOfQueues)));
+	int rivaltyAvg = (int)(ceil(pow((double)(rivaltyMultiple), 1 / (double)(numOfQueues))));
 
-	IsraeliQueue newQueue = IsraeliQueueCreate(newFriendshipFunctions, ComparisonFunction comparisonFunction, friendshipAvg, rivaltyAvg);
-	mergeQueues(queue, newQueue);
+	IsraeliQueue newQueue = IsraeliQueueCreate(newFriendshipFunctions, comparisonFunction, friendshipAvg, rivaltyAvg);
+	mergeQueues(queue, newQueue); 
 	return newQueue;
 
 }
-
 
