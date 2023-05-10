@@ -36,7 +36,6 @@
 typedef struct student* Student;
 typedef struct hacker* Hacker; 
 typedef struct enrollmentSystem* EnrollmentSystem; 
-typedef struct node* Node;
 
 EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers);
 

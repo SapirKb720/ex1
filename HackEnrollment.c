@@ -1,5 +1,6 @@
 #include "HackEnrollment.h"
 
+typedef struct node* Node;
 typedef struct node {
 	Node next;
 	void* student;

@@ -1,9 +1,12 @@
 #include "IsraeliQueue.h"
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define FRIEND 1
 #define RIVAL -1
 
+typedef struct node* Node;
 typedef struct node {
 	Node next;
 	void* student;
@@ -114,8 +117,8 @@ IsraeliQueueError IsraeliQueueEnqueue(IsraeliQueue queue, void* item)
 	int j = 0, friendIndex = len;
 	int* friendRivalArray = malloc(sizeof(int) * len);
 	Node curr = queue->head;
-	Node newNode = NULL;
-	if (newNode = malloc(sizeof(Node)) == NULL) {
+	Node newNode = malloc(sizeof(Node));
+	if (newNode == NULL) {
 		return ISRAELIQUEUE_ALLOC_FAILED;
 	}
 	newNode->friends = 0;
@@ -129,7 +132,7 @@ IsraeliQueueError IsraeliQueueEnqueue(IsraeliQueue queue, void* item)
 	}
 
 	while (curr) {
-		friendRivalArray[j] = CheckRelationship(newNode, curr, queue->friendship_th, queue->rivalry_th);
+		friendRivalArray[j] = CheckRelationship(newNode, curr, queue->friendshipFunctions, queue->friendship_th, queue->rivalry_th);
 		j++;
 		curr = curr->next;
 	}
@@ -204,13 +207,13 @@ IsraeliQueueError IsraeliQueueUpdateFriendshipThreshold(IsraeliQueue queue, int 
 
 int IsraeliQueueSize(IsraeliQueue queue)
 {
-	return FindQueueLength(queue);
+	return FindQueueLength(queue->head);
 }
 
 
 bool IsraeliQueueContains(IsraeliQueue queue, void* item)
 {
-	Node q = queue;
+	Node q = queue->head;
 
 	while (q) {
 		q = q->next;
@@ -317,7 +320,7 @@ int countFriendshipFunctions(IsraeliQueue* queue)
 	IsraeliQueue* q = queue;
 	while (*q != NULL)
 	{
-		count += countFrienshipArrLen((*q));
+		count += countFrienshipArrLen((*q)->friendshipFunctions);
 		q++;
 	}
 	return count;
@@ -363,7 +366,7 @@ void mergeQueues(IsraeliQueue* queue, IsraeliQueue newQueue)
 		for (int i = 0; i < numOfQueues; i++) {
 			if ((*(nodes + i)) != NULL) {
 				isAllNull = false;
-				IsraeliQueueEnqueue(queue, *(nodes + i));
+				IsraeliQueueEnqueue((*queue), *(nodes + i));
 				*(nodes + i) = (*(nodes + i))->next;
 			}
 		}
@@ -393,6 +396,5 @@ IsraeliQueue IsraeliQueueMerge(IsraeliQueue* queue, ComparisonFunction compariso
 	IsraeliQueue newQueue = IsraeliQueueCreate(newFriendshipFunctions, comparisonFunction, friendshipAvg, rivaltyAvg);
 	mergeQueues(queue, newQueue); 
 	return newQueue;
-
 }
 
